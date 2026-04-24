@@ -47,7 +47,7 @@ merged = {**item.model_dump(), "id": 1}
 ## Without Pydantic?
 
 - Use `dict[str, Any]` → accepted as body but no schema / validation. Rarely advisable.
-- Forms: see [[14 - Forms and Files]].
+- Forms: see [[FastAPI 14 - Forms and Files]].
 
 ## Nested
 
@@ -62,5 +62,5 @@ Recurses into `Address` model; all nested fields validated.
 ## Gotchas
 
 - ⚠️ `GET` bodies aren't forbidden but are discouraged (many tools/proxies drop them).
-- ⚠️ Declaring **two** Pydantic body params changes the shape → they're nested under keys. See [[07 - Body Multiple Params]].
+- ⚠️ Declaring **two** Pydantic body params changes the shape → they're nested under keys. See [[FastAPI 07 - Body Multiple Params]].
 - 💡 Use `model_config = ConfigDict(extra="forbid")` to 422 unknown keys.

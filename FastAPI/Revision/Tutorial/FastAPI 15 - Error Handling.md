@@ -76,5 +76,5 @@ await http_exception_handler(request, exc)  # delegate back
 
 ## Gotchas
 
-- ⚠️ Raising `HTTPException` from a service layer leaks HTTP concerns. Raise domain errors; translate at the boundary (see [[Tutorial/17 - Dependencies]]).
+- ⚠️ Raising `HTTPException` from a service layer leaks HTTP concerns. Raise domain errors; translate at the boundary (see [[Tutorial/FastAPI 17 - Dependencies]]).
 - ⚠️ `exception_handler` for `Exception` catches **everything** — place before more-specific handlers will still work because FastAPI matches by class MRO.

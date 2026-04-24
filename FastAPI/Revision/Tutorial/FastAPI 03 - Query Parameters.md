@@ -57,7 +57,7 @@ Path param goes to `{user_id}`; any extra arg → query.
 
 ## Convert relative → absolute
 
-Pydantic converts types; use `Query()` for validation rules (see [[05 - Query and Path Validation]]).
+Pydantic converts types; use `Query()` for validation rules (see [[FastAPI 05 - Query and Path Validation]]).
 
 ## Gotchas
 

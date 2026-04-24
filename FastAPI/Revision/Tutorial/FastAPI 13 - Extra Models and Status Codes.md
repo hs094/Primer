@@ -41,7 +41,7 @@ async def create(...): ...
 
 ## Custom per-route status without `HTTPException`
 
-See [[Advanced/03 - Additional Responses]] for `response.status_code = ...` inside the handler.
+See [[Advanced/FastAPI 03 - Additional Responses]] for `response.status_code = ...` inside the handler.
 
 ## Gotcha
 

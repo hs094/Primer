@@ -51,7 +51,7 @@ async def read_file(file_path: str):
 
 ## vs Path validation
 
-See [[05 - Query and Path Validation]] for `Path(..., ge=1, le=1000, title=..., description=...)` — adds metadata + numeric constraints without changing function signature semantics.
+See [[FastAPI 05 - Query and Path Validation]] for `Path(..., ge=1, le=1000, title=..., description=...)` — adds metadata + numeric constraints without changing function signature semantics.
 
 ## Gotchas
 

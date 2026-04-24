@@ -76,7 +76,7 @@ async def me(user: Annotated[User, Security(get_current_user, scopes=["me"])]):
     ...
 ```
 
-- Use `Security(...)` instead of `Depends(...)` when passing `scopes=`. Details in [[Advanced/05 - Advanced Security]].
+- Use `Security(...)` instead of `Depends(...)` when passing `scopes=`. Details in [[Advanced/FastAPI 05 - Advanced Security]].
 
 ## API Key
 

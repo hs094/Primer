@@ -12,7 +12,7 @@
 | `deprecated=True` | mark deprecated in UI |
 | `include_in_schema=False` | hide from OpenAPI |
 | `operation_id="..."` | stable ID for codegen |
-| `responses={404: {...}}` | extra responses (see [[Advanced/03 - Additional Responses]]) |
+| `responses={404: {...}}` | extra responses (see [[Advanced/FastAPI 03 - Additional Responses]]) |
 
 ```python
 @app.post("/items/", response_model=Item, status_code=201,

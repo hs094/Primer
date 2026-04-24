@@ -44,7 +44,7 @@ app.dependency_overrides[get_session] = lambda: fake_session
 
 ## Async tests
 
-Use `pytest-asyncio` + `httpx.AsyncClient` — see [[Advanced/12 - Async Tests]].
+Use `pytest-asyncio` + `httpx.AsyncClient` — see [[Advanced/FastAPI 12 - Async Tests]].
 
 ## Testing WebSockets
 

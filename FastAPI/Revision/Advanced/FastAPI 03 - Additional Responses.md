@@ -50,7 +50,7 @@ return resp
 
 ## `response_model` + `status_code` reminder
 
-See [[Tutorial/13 - Extra Models and Status Codes]].
+See [[Tutorial/FastAPI 13 - Extra Models and Status Codes]].
 
 ## Gotchas
 

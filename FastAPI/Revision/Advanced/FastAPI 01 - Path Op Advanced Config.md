@@ -49,7 +49,7 @@ async def create(item: Item):
 
 ## Extra response metadata
 
-See [[03 - Additional Responses]].
+See [[FastAPI 03 - Additional Responses]].
 
 ## Override the default response class for a route
 

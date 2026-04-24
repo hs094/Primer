@@ -97,4 +97,4 @@ async def get_session() -> AsyncIterator[AsyncSession]:
 
 - ⚠️ Each identical `Depends` call in one request → cached. Fine for DB session; watch out if a dep captures request-time state you expect fresh.
 - ⚠️ Teardown code runs **after** the response's body is produced; raising there won't change the HTTP status.
-- 💡 Use `Depends(get_current_user)` for auth — see [[Tutorial/18 - Security]].
+- 💡 Use `Depends(get_current_user)` for auth — see [[Tutorial/FastAPI 18 - Security]].

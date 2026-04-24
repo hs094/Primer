@@ -35,7 +35,7 @@ x_token: Annotated[list[str] | None, Header()] = None
 
 ## Cookie / header as models
 
-See [[06 - Parameter Models]] — `Annotated[Model, Cookie()]` or `Annotated[Model, Header()]` groups them.
+See [[FastAPI 06 - Parameter Models]] — `Annotated[Model, Cookie()]` or `Annotated[Model, Header()]` groups them.
 
 ## Setting response cookies / headers
 
@@ -51,7 +51,7 @@ def f(response: Response):
     return {"ok": True}
 ```
 
-Or construct a custom `Response` / `JSONResponse` directly. See [[Advanced/03 - Additional Responses]].
+Or construct a custom `Response` / `JSONResponse` directly. See [[Advanced/FastAPI 03 - Additional Responses]].
 
 ## Gotchas
 
