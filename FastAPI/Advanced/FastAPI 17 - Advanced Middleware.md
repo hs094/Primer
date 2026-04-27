@@ -16,7 +16,7 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["example.com", "*.examp
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 ```
 
-- **HTTPSRedirect** — 308 to `https://`. Behind a TLS-terminating proxy, configure `proxy_headers` instead.
+- **HTTPSRedirect** — 307 to `https://` (also `ws` → `wss`). Behind a TLS-terminating proxy, configure `--proxy-headers` on the server instead.
 - **TrustedHost** — drops requests with unexpected `Host` headers (defense vs Host header attacks).
 - **GZip** — compresses responses ≥ minimum_size.
 

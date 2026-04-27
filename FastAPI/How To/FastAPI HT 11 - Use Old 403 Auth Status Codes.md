@@ -1,31 +1,38 @@
 # HT 11 — Use Old 403 Authentication Status Codes
 
-🔑 Modern FastAPI returns **401 Unauthorized** when credentials are missing/invalid (RFC-correct). Older versions returned **403 Forbidden**. Pin the legacy behavior if you have ancient clients that distinguish wrongly.
+🔑 FastAPI ≥ 0.122 returns **401 Unauthorized** with a `WWW-Authenticate` header when credentials are missing (RFC 7235 / 9110). Earlier versions returned **403 Forbidden**. Pin the legacy 403 by subclassing the security class and overriding `make_not_authenticated_error()`.
 
 ## Background
 
 - **401 Unauthorized** = "you are not authenticated" (please provide credentials).
 - **403 Forbidden** = "you are authenticated but not allowed".
 
-Older FastAPI / Starlette mistakenly used 403 for missing auth. Most clients didn't care; some did.
+Pre-0.122 FastAPI raised 403 for missing auth. Most clients didn't care; some did.
 
 ## Restoring 403
 
 ```python
-from fastapi.security import OAuth2PasswordBearer
+from typing import Annotated
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="token",
-    auto_error=False,        # disable the default 401
-)
+class HTTPBearer403(HTTPBearer):
+    def make_not_authenticated_error(self) -> HTTPException:
+        return HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authenticated",
+        )
 
-async def current_user(token: str | None = Depends(oauth2_scheme)):
-    if not token:
-        raise HTTPException(403, "Not authenticated")
-    return decode(token)
+CredentialsDep = Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer403())]
+
+app = FastAPI()
+
+@app.get("/me")
+def read_me(credentials: CredentialsDep):
+    return {"token": credentials.credentials}
 ```
 
-`auto_error=False` lets you decide the status code yourself.
+`make_not_authenticated_error()` returns the `HTTPException` instance (FastAPI raises it). The same override works on `OAuth2PasswordBearer`, `APIKeyHeader`, etc.
 
 ## When to actually do this
 
@@ -46,12 +53,14 @@ Then sunset v1.
 
 ## WWW-Authenticate header
 
-If you keep 401, also include:
+If you keep 401 (the default), FastAPI's built-in security classes already attach a sensible `WWW-Authenticate` header. When raising your own 401 from a handler, set it explicitly:
 
 ```python
-raise HTTPException(401,
-                    "Not authenticated",
-                    headers={"WWW-Authenticate": "Bearer"})
+raise HTTPException(
+    status.HTTP_401_UNAUTHORIZED,
+    "Not authenticated",
+    headers={"WWW-Authenticate": "Bearer"},
+)
 ```
 
 Required by RFC 7235; some clients skip retries without it.

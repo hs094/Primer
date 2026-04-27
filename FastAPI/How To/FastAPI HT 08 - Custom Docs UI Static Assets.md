@@ -6,7 +6,11 @@
 
 ```python
 from fastapi import FastAPI
-from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
+from fastapi.openapi.docs import (
+    get_redoc_html,
+    get_swagger_ui_html,
+    get_swagger_ui_oauth2_redirect_html,
+)
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(docs_url=None, redoc_url=None)
@@ -16,19 +20,22 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def swagger():
     return get_swagger_ui_html(
         openapi_url=app.openapi_url,
-        title=app.title + " — docs",
+        title=app.title + " - Swagger UI",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
         swagger_js_url="/static/swagger-ui-bundle.js",
         swagger_css_url="/static/swagger-ui.css",
-        swagger_favicon_url="/static/favicon.png",
     )
+
+@app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
+async def swagger_ui_redirect():
+    return get_swagger_ui_oauth2_redirect_html()
 
 @app.get("/redoc", include_in_schema=False)
 async def redoc():
     return get_redoc_html(
         openapi_url=app.openapi_url,
-        title=app.title + " — ReDoc",
+        title=app.title + " - ReDoc",
         redoc_js_url="/static/redoc.standalone.js",
-        redoc_favicon_url="/static/favicon.png",
     )
 ```
 
@@ -41,13 +48,7 @@ Vendor them into `static/` and pin versions.
 
 ## OAuth2 redirect (Swagger)
 
-```python
-@app.get("/docs/oauth2-redirect", include_in_schema=False)
-async def oauth2_redirect():
-    return get_swagger_ui_oauth2_redirect_html()
-```
-
-Needed if your Swagger UI does the OAuth2 flow.
+The redirect handler is registered at `app.swagger_ui_oauth2_redirect_url` (default `/docs/oauth2-redirect`). Pass the same URL into `get_swagger_ui_html(oauth2_redirect_url=...)` so Swagger knows where to send the OAuth2 flow callback. Both are wired in the snippet above.
 
 ## Why self-host
 

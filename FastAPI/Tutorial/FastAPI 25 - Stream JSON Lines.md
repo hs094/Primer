@@ -1,33 +1,45 @@
 # 25 — Stream JSON Lines (NDJSON)
 
-🔑 Stream a sequence of JSON objects, one per line, to a client that consumes them as they arrive. No big array buffered, no need for the client to wait for completion.
+🔑 Stream a sequence of JSON objects, one per line, to a client that consumes them as they arrive. No big array buffered, no need for the client to wait for completion. First-class in FastAPI ≥ 0.134.0 — just `yield` from the path op.
 
 ## The handler
 
 ```python
+from collections.abc import AsyncIterable
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
-import json, asyncio
+from pydantic import BaseModel
 
 app = FastAPI()
 
-async def jsonl_rows():
-    for i in range(1_000_000):
-        yield json.dumps({"i": i}) + "\n"
-        await asyncio.sleep(0)   # cooperative yield
+class Item(BaseModel):
+    name: str
+    description: str | None = None
 
-@app.get("/stream")
-async def stream():
-    return StreamingResponse(jsonl_rows(), media_type="application/x-ndjson")
+@app.get("/items/stream")
+async def stream_items() -> AsyncIterable[Item]:
+    for i in range(1_000_000):
+        yield Item(name=f"item-{i}", description=None)
 ```
 
-- `media_type="application/x-ndjson"` (or `application/jsonl`) — tells clients each line is one JSON object.
-- The generator is `async` so DB/network awaits don't block the loop.
+- No `StreamingResponse`, no manual `json.dumps` — `yield` from the path op and FastAPI emits one JSON object per line.
+- Response media type is **`application/jsonl`**.
+- The return-type annotation (`AsyncIterable[Item]`) drives Pydantic's Rust serializer for each yielded item.
+- Sync version works too — annotate `-> Iterable[Item]` and use plain `def`; FastAPI runs it on the threadpool.
+
+## Output on the wire
+
+```
+{"name":"item-0","description":null}
+{"name":"item-1","description":null}
+...
+```
+
+Not a JSON array — each line is a complete JSON object (NDJSON).
 
 ## Client side
 
 ```python
-import httpx
+import httpx, json
 
 async with httpx.AsyncClient() as c:
     async with c.stream("GET", url) as r:
@@ -44,9 +56,9 @@ async with httpx.AsyncClient() as c:
 ## Gotchas
 
 - ⚠️ Don't `await` between `yield` for an unbounded time — proxies may close idle connections (often ~60 s).
-- ⚠️ `StreamingResponse` doesn't go through `response_model` filtering — you serialize manually.
+- ⚠️ Streaming responses skip `response_model` filtering of the *response shape* — the return-type annotation governs per-item serialization instead.
 - ⚠️ If the client disconnects, the generator is cancelled — handle cleanup with `try/finally`.
 
 💡 If the *whole* thing fits in memory, return a list. NDJSON earns its keep at scale.
 
-See also [[FastAPI 26 - Server-Sent Events]] for event-stream framing.
+See also [[FastAPI 26 - Server-Sent Events]] for event-stream framing, and `advanced/stream-data/` for raw bytes/strings via `StreamingResponse` with `yield`.

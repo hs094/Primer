@@ -5,7 +5,7 @@
 ## Pattern
 
 ```python
-from typing import Callable
+from collections.abc import Callable
 from fastapi import APIRouter, FastAPI, Request, Response
 from fastapi.routing import APIRoute
 
@@ -47,15 +47,15 @@ class GzipRequest(Request):
     async def body(self) -> bytes:
         if not hasattr(self, "_body"):
             body = await super().body()
-            if "gzip" in self.headers.getlist("content-encoding"):
+            if "gzip" in self.headers.getlist("Content-Encoding"):
                 body = gzip.decompress(body)
             self._body = body
         return self._body
 
 class GzipRoute(APIRoute):
-    def get_route_handler(self):
+    def get_route_handler(self) -> Callable:
         original = super().get_route_handler()
-        async def custom(request: Request):
+        async def custom(request: Request) -> Response:
             return await original(GzipRequest(request.scope, request.receive))
         return custom
 ```

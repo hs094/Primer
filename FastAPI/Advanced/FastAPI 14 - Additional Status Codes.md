@@ -5,6 +5,7 @@
 ## Return a different status mid-handler
 
 ```python
+from typing import Annotated
 from fastapi import FastAPI, Body, status
 from fastapi.responses import JSONResponse
 
@@ -12,7 +13,7 @@ app = FastAPI()
 items = {"foo": {"name": "Foo"}}
 
 @app.put("/items/{item_id}")
-async def upsert(item_id: str, name: str = Body(...)):
+async def upsert(item_id: str, name: Annotated[str, Body()]):
     if item_id in items:
         items[item_id]["name"] = name
         return items[item_id]                       # → 200 (the default)

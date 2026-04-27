@@ -9,13 +9,13 @@ from fastapi import FastAPI
 
 app = FastAPI(
     swagger_ui_parameters={
-        "syntaxHighlight.theme": "obsidian",   # dark code blocks
-        "deepLinking": True,                   # links to specific ops
-        "displayRequestDuration": True,        # show ms for try-it-out
-        "filter": True,                        # search filter box
-        "tryItOutEnabled": True,               # default to expanded UI
-        "defaultModelsExpandDepth": -1,        # hide the schemas section
-        "docExpansion": "none",                # collapse all by default
+        "syntaxHighlight": {"theme": "obsidian"},  # dark code blocks
+        "deepLinking": True,                       # links to specific ops
+        "displayRequestDuration": True,            # show ms for try-it-out
+        "filter": True,                            # search filter box
+        "tryItOutEnabled": True,                   # "Try it out" auto-enabled
+        "defaultModelsExpandDepth": -1,            # hide the schemas section
+        "docExpansion": "none",                    # collapse all by default
     }
 )
 ```

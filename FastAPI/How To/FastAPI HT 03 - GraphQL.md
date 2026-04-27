@@ -1,6 +1,6 @@
 # HT 03 — GraphQL
 
-🔑 FastAPI doesn't ship GraphQL itself, but mounts a GraphQL ASGI app cleanly. Use **Strawberry** (typed, Pydantic-friendly) or **Ariadne** (schema-first).
+🔑 FastAPI doesn't ship GraphQL itself, but mounts any GraphQL ASGI app cleanly. The docs list four options: **Strawberry** (recommended — typed, closest to FastAPI's design), **Ariadne** (schema-first), **Tartiflette** (via `tartiflette-asgi`), and **Graphene** (via `starlette-graphene3`).
 
 ## Strawberry
 
@@ -15,14 +15,14 @@ from fastapi import FastAPI
 
 @strawberry.type
 class User:
-    id: int
     name: str
+    age: int
 
 @strawberry.type
 class Query:
     @strawberry.field
-    def me(self) -> User:
-        return User(id=1, name="Ada")
+    def user(self) -> User:
+        return User(name="Patrick", age=100)
 
 schema = strawberry.Schema(query=Query)
 graphql_app = GraphQLRouter(schema)

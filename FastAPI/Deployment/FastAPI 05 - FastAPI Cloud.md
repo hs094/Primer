@@ -11,13 +11,15 @@
 
 ## CLI flow
 
+`fastapi[standard]` already pulls in `fastapi-cli[standard]`, which pulls `fastapi-cloud-cli` and registers `deploy` / `login` directly on the `fastapi` command:
+
 ```bash
-pip install fastapi-cloud-cli         # or via fastapi[standard]
-fastapi-cloud login
-fastapi-cloud deploy
+pip install "fastapi[standard]"       # or: pip install fastapi-cloud-cli
+fastapi login
+fastapi deploy
 ```
 
-The CLI bundles your app, uploads, and runs it behind their load balancer.
+More subcommands live under `fastapi cloud …` (e.g. `fastapi cloud logs`, `fastapi cloud whoami`, `fastapi cloud env`). The CLI bundles your app, uploads, and runs it behind their load balancer.
 
 ## When to use it
 

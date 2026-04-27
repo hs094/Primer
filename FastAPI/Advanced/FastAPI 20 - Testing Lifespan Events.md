@@ -49,12 +49,13 @@ import httpx, pytest
 @pytest.mark.asyncio
 async def test_async():
     async with app.router.lifespan_context(app):
-        async with httpx.AsyncClient(app=app, base_url="http://test") as ac:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
             r = await ac.get("/items")
             assert r.status_code == 200
 ```
 
-Or use the modern `httpx.ASGITransport` + `LifespanManager` (asgi-lifespan).
+Or pair `httpx.ASGITransport` with `LifespanManager` from `asgi-lifespan`.
 
 ## Why this exists
 

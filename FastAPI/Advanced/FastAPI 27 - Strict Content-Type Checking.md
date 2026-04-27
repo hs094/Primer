@@ -1,59 +1,51 @@
 # Adv 27 — Strict Content-Type Checking
 
-🔑 By default FastAPI tolerates a missing or wrong `Content-Type` for JSON bodies. Strict mode rejects bodies whose declared content type doesn't match what the route expects.
+🔑 Since FastAPI 0.132.0, JSON request bodies require a valid `Content-Type` header (e.g. `application/json`) **by default**. Requests without one are rejected before the body is parsed.
 
-## Default (lenient)
-
-A `POST /items/` with `Content-Type: text/plain` and a JSON body might still be parsed — surprising but historic behavior.
-
-## Opt into strict mode
+## Default (strict)
 
 ```python
-from fastapi import Body
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+class Item(BaseModel):
+    name: str
+    price: float
+
+app = FastAPI()
 
 @app.post("/items/")
-async def create(item: Item = Body(..., media_type="application/json", strict=True)):
-    ...
+async def create_item(item: Item):
+    return item
 ```
 
-(Or per-app via configuration where supported.) When `strict=True`, requests without `application/json` (or matching `media_type`) get a 415.
+A `POST /items/` with no `Content-Type` (or one that isn't `application/json`) is rejected — body never reaches the handler.
 
-## Why strict
-
-- Defense against clients sending malformed/poisoned payloads.
-- Makes API contracts honest in the docs.
-- Avoids accidental success with wrong content (e.g. proxy stripped the header).
-
-## Explicit content negotiation
+## Opt out — app-level flag
 
 ```python
-@app.post("/items/", openapi_extra={
-    "requestBody": {"content": {"application/json": {"schema": {...}}}}
-})
+app = FastAPI(strict_content_type=False)
 ```
 
-Pair strict checking with explicit `responses=` declarations so docs and runtime agree.
+With `strict_content_type=False`, missing/wrong `Content-Type` headers are tolerated and the body is parsed as JSON anyway — the pre-0.132 behavior.
 
-## Multipart / form
+## Why strict by default
 
-For form endpoints, use `Form()` / `File()` — those already require `multipart/form-data` or `application/x-www-form-urlencoded`. No strict opt-in needed.
+Defense against a narrow CSRF class: a browser script can issue a cross-origin request without a `Content-Type` header (skipping the CORS preflight). If the server happily parses it as JSON, an unauthenticated localhost/intranet app may execute attacker-controlled mutations. Requiring `application/json` forces the preflight, which CORS can then block.
 
-## Custom rejection
+- ⚠️ Mostly relevant for **localhost / internal-network** apps with no auth.
+- For internet-exposed APIs with proper auth, the risk is already mitigated.
 
-If you want a richer error than 415:
+## When you might disable it
 
-```python
-from fastapi import Request, HTTPException
+- Legacy clients that don't set `Content-Type`.
+- Webhook senders / IoT devices with hardcoded behavior.
+- Migrating a pre-0.132 app and need a temporary compat shim.
 
-@app.middleware("http")
-async def enforce_json(request: Request, call_next):
-    if request.method in {"POST", "PUT", "PATCH"} and request.url.path.startswith("/api/"):
-        ct = request.headers.get("content-type", "")
-        if not ct.startswith("application/json"):
-            raise HTTPException(415, "must be application/json")
-    return await call_next(request)
-```
+Otherwise — leave it on. It costs nothing and closes a real (if narrow) hole.
 
-⚠️ Middleware-level checks are blunt — prefer per-route `Body(strict=True)` so contracts stay co-located.
+## Form / multipart routes
 
-💡 Lenient defaults exist for backward compat. New APIs — turn strict on from day one.
+Unaffected. `Form()` / `File()` already require `multipart/form-data` or `application/x-www-form-urlencoded` and reject otherwise — no separate strict flag needed.
+
+💡 New apps on FastAPI ≥ 0.132 — keep the default. Don't pass `strict_content_type=False` unless you've measured a concrete client breakage.

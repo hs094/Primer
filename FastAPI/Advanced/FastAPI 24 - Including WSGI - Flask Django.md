@@ -5,8 +5,8 @@
 ## Pattern
 
 ```python
+from a2wsgi import WSGIMiddleware
 from fastapi import FastAPI
-from fastapi.middleware.wsgi import WSGIMiddleware
 from flask import Flask
 
 flask_app = Flask(__name__)
@@ -24,7 +24,7 @@ async def new():
 app.mount("/v1", WSGIMiddleware(flask_app))     # /v1/legacy → flask
 ```
 
-Run with Uvicorn — the WSGI app is wrapped to look like ASGI.
+Run with Uvicorn — `a2wsgi` wraps the WSGI app to look like ASGI. (`fastapi.middleware.wsgi.WSGIMiddleware` is deprecated — install `a2wsgi` directly.)
 
 ## Django
 
