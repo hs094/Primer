@@ -1,13 +1,12 @@
 # 08 — Parallel and Intercepting Routes
 
-🔑 Two file-system tricks for advanced UI: `@slot` folders render multiple pages **simultaneously** in one layout; `(.)`-prefixed folders **intercept** another route to render it inline (e.g. as a modal).
+🔑 `@slot` folders render multiple pages **simultaneously** in one layout; `(.)`-prefixed folders **intercept** another route to render it inline (e.g. as a modal).
 
 Sources:
 - https://nextjs.org/docs/app/api-reference/file-conventions/parallel-routes
 - https://nextjs.org/docs/app/api-reference/file-conventions/intercepting-routes
 
-## Parallel Routes — `@slot`
-A folder prefixed with `@` becomes a named slot, passed as a prop to the parent layout:
+## Parallel — `@slot`
 ```
 app/
   layout.tsx
@@ -16,7 +15,6 @@ app/
   page.tsx
 ```
 ```tsx
-// app/layout.tsx
 export default function Layout({
   children, analytics, team,
 }: {
@@ -29,12 +27,9 @@ export default function Layout({
 ```
 Slots don't change the URL. Each renders, errors, and streams independently.
 
-⚠️ Every slot needs a `default.tsx` — used as fallback on hard navigation when the slot can't match the URL. Without it, you get a 404.
+⚠️ Every slot needs `default.tsx` — fallback on hard navigation when the slot can't match the URL. Without it, 404.
 
-💡 Conditional slots: render `admin` vs `user` from the same layout based on session.
-
-## Intercepting Routes — `(.)` `(..)` `(...)`
-Mirror the relative-path syntax, but for route segments:
+## Intercepting — `(.)` `(..)` `(...)`
 | Pattern | Intercepts |
 |---|---|
 | `(.)foo` | sibling segment `foo` |
@@ -49,11 +44,11 @@ app/
   @auth/
     default.tsx            # returns null
     (.)login/page.tsx      # <Modal><Login /></Modal>
-  login/page.tsx           # full-page version (refresh / direct link)
+  login/page.tsx           # full-page version on refresh
 ```
-Soft nav to `/login` from a `<Link>` opens the modal; refresh or shareable URL renders the full page. Closing calls `router.back()`.
+Soft nav from `<Link href="/login">` opens the modal; refresh / shareable URL renders the full page. Close with `router.back()`.
 
-🧪 See `vercel-labs/nextgram` for a complete photo-modal example.
+🧪 Reference: `vercel-labs/nextgram` photo-modal example.
 
 ## Tags
 [[Nextjs]] [[App Router]] [[Routing]] [[Streaming]]

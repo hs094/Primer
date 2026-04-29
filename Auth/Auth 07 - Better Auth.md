@@ -11,11 +11,7 @@ Source: https://better-auth.com/docs
 - Plugins extend the schema and the API surface.
 
 ## Core Auth (Built-in)
-- Email + password (with verification, reset, breach checks)
-- Social sign-on (Google, GitHub, Apple, Discord, …)
-- Sessions: opaque server-side tokens in HttpOnly cookies (not JWT by default)
-- Account linking
-- Rate limiting
+Email + password (verification, reset, breach checks), social sign-on, opaque server-side sessions in HttpOnly cookies (not JWT by default), account linking, rate limiting.
 
 ## Plugins (The Real Story)
 | Plugin | Adds |

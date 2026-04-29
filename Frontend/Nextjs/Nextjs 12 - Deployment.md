@@ -1,24 +1,23 @@
 # 12 — Deployment
 
-🔑 Next.js runs anywhere a Node.js process or Docker container runs. Vercel is the zero-config target; everything else uses adapters or `output: 'standalone'`.
+🔑 Next.js runs anywhere a Node.js process or Docker container runs. Vercel is zero-config; everything else uses adapters or `output: 'standalone'`.
 
 Source: https://nextjs.org/docs/app/getting-started/deploying
 
-## Targets at a Glance
+## Targets
 | Target | Feature support | When |
 |---|---|---|
-| **Vercel** | All (verified adapter) | Default, zero-config, automatic ISR/edge |
-| **Node.js server** | All | `next build && next start` on any host |
+| **Vercel** | All (verified adapter) | Default, auto ISR/edge |
+| **Node.js** | All | `next build && next start` on any host |
 | **Docker** | All | `output: 'standalone'` for tiny images |
 | **Static export** | Limited | `output: 'export'` — no SSR, no Server Actions |
-| **Adapters** | Varies | Bun (verified), Cloudflare/Netlify (own integrations) |
+| **Adapters** | Varies | Bun verified; Cloudflare/Netlify ship integrations |
 
 ## Standalone Output (Docker)
 ```ts
-// next.config.ts
 const config = { output: 'standalone' }
 ```
-`next build` writes `.next/standalone/` with a self-contained Node server + traced deps — typical image goes from ~1 GB to ~150 MB.
+`next build` writes `.next/standalone/` with a self-contained Node server + traced deps (~150 MB image vs ~1 GB).
 
 ```dockerfile
 FROM node:20-alpine
@@ -32,27 +31,23 @@ CMD ["node", "server.js"]
 
 ## Edge Runtime (per-route)
 ```ts
-// app/api/hello/route.ts
 export const runtime = 'edge'
 ```
-Restricted Node API surface, but lower cold start and runs in V8 isolates close to the user. Use for tiny handlers, [[Middleware]] / proxy logic, geo-aware responses.
+Restricted Node API surface, lower cold start, V8 isolates near the user. Use for tiny handlers, [[Middleware]], geo-aware responses.
 
-## ISR — Incremental Static Regeneration
-On-demand revalidation works on any Node deploy:
+## ISR
 ```ts
-// In a Server Action or Route Handler
 import { revalidatePath, revalidateTag } from 'next/cache'
 revalidateTag('posts')
 ```
 Time-based: `fetch(url, { next: { revalidate: 3600 } })` or `cacheLife('hours')` inside a [[Cache Components]] scope.
 
 ## Other Platforms
-- **OpenNext** (`open-next.js.org`) — community adapter for Cloudflare Workers and AWS Lambda.
-- **AWS Amplify**, **Firebase App Hosting**, **Render**, **Railway**, **Fly.io** — all have starter templates under `github.com/nextjs`.
+**OpenNext** (`open-next.js.org`) for Cloudflare Workers / AWS Lambda. Templates also for Amplify, Firebase, Render, Railway, Fly.io.
 
-⚠️ Static export disables Server Actions, ISR, image optimization (without a custom loader), middleware/proxy, and dynamic routes without `generateStaticParams`. It's HTML/CSS/JS only.
+⚠️ Static export disables Server Actions, ISR, image optimization, middleware/proxy, and dynamic routes without `generateStaticParams`.
 
-💡 [[Cache Components]] entries are stored in-memory; on serverless, entries don't persist across instances. Use `cacheHandlers` to plug in Redis/KV when you self-host at scale.
+💡 Cache Components entries are in-memory; on serverless they don't persist across instances. Use `cacheHandlers` to plug in Redis/KV when self-hosting at scale.
 
 ## Tags
 [[Nextjs]] [[Deployment]] [[Vercel]] [[Docker]] [[Edge]]

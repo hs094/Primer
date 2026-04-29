@@ -1,12 +1,11 @@
 # 11 — Metadata and SEO
 
-🔑 Export a `metadata` object (static) or `generateMetadata` function (dynamic) from `layout.tsx` / `page.tsx` — Next.js injects the `<head>` tags. File-based conventions cover icons, OG images, sitemap, and robots.
+🔑 Export `metadata` (static) or `generateMetadata` (dynamic) from `layout.tsx` / `page.tsx`. File conventions cover icons, OG images, sitemap, robots.
 
 Source: https://nextjs.org/docs/app/getting-started/metadata-and-og-images
 
-## Static Metadata
+## Static
 ```tsx
-// app/blog/layout.tsx
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -16,11 +15,8 @@ export const metadata: Metadata = {
 }
 ```
 
-## Dynamic — `generateMetadata`
+## Dynamic
 ```tsx
-// app/blog/[slug]/page.tsx
-import type { Metadata } from 'next'
-
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
@@ -29,19 +25,18 @@ export async function generateMetadata(
   return { title: post.title, description: post.excerpt }
 }
 ```
-
 ⚠️ `generateMetadata` and `Page` often need the same data — wrap the loader in `React.cache()` so the request runs once.
 
 ## File Conventions
 | File | Output |
 |---|---|
-| `app/favicon.ico`, `icon.png`, `apple-icon.png` | Favicons / Apple icons |
-| `app/opengraph-image.{png,jpg}` or `.tsx` | OG image (static or generated) |
-| `app/twitter-image.{png,jpg}` or `.tsx` | Twitter Card image |
+| `app/favicon.ico`, `icon.png`, `apple-icon.png` | Favicons |
+| `app/opengraph-image.{png,jpg,tsx}` | OG image (static or generated) |
+| `app/twitter-image.{png,jpg,tsx}` | Twitter Card image |
 | `app/sitemap.ts` | `MetadataRoute.Sitemap` |
 | `app/robots.ts` | `MetadataRoute.Robots` |
 
-## Generated OG Image
+## Generated OG
 ```tsx
 // app/blog/[slug]/opengraph-image.tsx
 import { ImageResponse } from 'next/og'
@@ -54,7 +49,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
 }
 ```
 
-## `sitemap.ts` / `robots.ts`
+## `sitemap.ts`
 ```ts
 import type { MetadataRoute } from 'next'
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -62,7 +57,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 }
 ```
 
-💡 JSON-LD: render a `<script type="application/ld+json">` directly in the page — Next doesn't have a dedicated API for it, plain JSX is the recommendation.
+💡 JSON-LD: render a `<script type="application/ld+json">` directly in JSX — no dedicated API.
 
 ## Tags
 [[Nextjs]] [[SEO]] [[App Router]] [[OpenGraph]]

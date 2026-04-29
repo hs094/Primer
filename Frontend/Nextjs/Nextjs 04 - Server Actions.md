@@ -1,15 +1,13 @@
 # 04 — Server Actions
 
-🔑 Server Actions are async functions marked with `"use server"` that run on the server but can be called like normal functions from Client Components — typically from `<form action={...}>`.
+🔑 Async functions marked `"use server"` run on the server but are callable from Client Components — typically via `<form action={...}>`.
 
 Source: https://nextjs.org/docs/app/api-reference/directives/use-server
 
-## Two Ways to Declare
-**File-level** — every export is a Server Action:
+## File-level Declaration
 ```ts
 // app/actions.ts
 'use server'
-
 import { db } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
@@ -23,39 +21,34 @@ export async function createPost(formData: FormData) {
 }
 ```
 
-**Inline** — declare inside a Server Component:
+## Inline (Server Component)
 ```tsx
-export default function Page() {
-  async function save(fd: FormData) {
-    'use server'
-    await db.post.create({ data: { title: fd.get('title') as string } })
-    revalidatePath('/posts')
-  }
-  return <form action={save}><input name="title" /></form>
+async function save(fd: FormData) {
+  'use server'
+  await db.post.create({ data: { title: fd.get('title') as string } })
+  revalidatePath('/posts')
 }
+return <form action={save}><input name="title" /></form>
 ```
 
-## Calling from a Client Component
+## Calling from Client
 ```tsx
 'use client'
 import { createPost } from '../actions'
-// either as form action or directly:
 <form action={createPost}>...</form>
 ```
 
 ## Post-Mutation APIs
 | Function | Purpose |
 |---|---|
-| `revalidatePath('/posts')` | Invalidate route cache for that path |
-| `revalidateTag('posts')` | Invalidate all caches tagged `posts` |
-| `redirect('/posts/123')` | Throw redirect — must call after the mutation |
-| `cookies()` / `headers()` | Read or set request-scoped values |
+| `revalidatePath('/posts')` | Invalidate route cache |
+| `revalidateTag('posts')` | Invalidate tagged caches |
+| `redirect('/posts/123')` | Throw redirect after mutation |
+| `cookies()` / `headers()` | Read/set request-scoped values |
 
-⚠️ **Always re-authenticate inside the action.** A Server Action is just a POST endpoint — anyone can call it. Don't trust the route or [[Middleware]] alone.
+⚠️ A Server Action is just a POST endpoint — re-authenticate inside every action. Never trust the route or [[Middleware]] alone.
 
-💡 Return only the data the UI needs. The return value is serialized over the wire — never return raw DB rows.
-
-🧪 Test by calling the exported action with a real `FormData` instance — it's just an async function.
+💡 Return only what the UI needs; values are serialized over the wire.
 
 ## Tags
 [[Nextjs]] [[Server Actions]] [[RSC]] [[App Router]]

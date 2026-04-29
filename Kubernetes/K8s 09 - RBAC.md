@@ -29,13 +29,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata: { namespace: prod, name: api-reads-pods }
 subjects:
-  - kind: ServiceAccount
-    name: api
-    namespace: prod
+  - { kind: ServiceAccount, name: api, namespace: prod }
 roleRef:
-  kind: Role
-  name: pod-reader
-  apiGroup: rbac.authorization.k8s.io
+  { kind: Role, name: pod-reader, apiGroup: rbac.authorization.k8s.io }
 ```
 
 ## ServiceAccounts

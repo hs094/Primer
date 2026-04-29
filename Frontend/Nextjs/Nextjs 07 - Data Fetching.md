@@ -1,51 +1,45 @@
 # 07 — Data Fetching
 
-🔑 Server Components fetch directly with `async`/`await` — no `getServerSideProps`, no loaders. Use `fetch` with Next's caching extensions, or hit an ORM/DB.
+🔑 Server Components fetch directly with `async`/`await` — no `getServerSideProps`. Use `fetch` with Next's caching extensions, or hit an ORM/DB.
 
 Source: https://nextjs.org/docs/app/getting-started/fetching-data
 
 ## Server Component Fetch
 ```tsx
 export default async function Page() {
-  const data = await fetch('https://api.example.com/posts')
-  const posts = await data.json()
-  return <ul>{posts.map((p: Post) => <li key={p.id}>{p.title}</li>)}</ul>
+  const res = await fetch('https://api.example.com/posts')
+  const posts: Post[] = await res.json()
+  return <ul>{posts.map(p => <li key={p.id}>{p.title}</li>)}</ul>
 }
 ```
 
-## Next's `fetch` Extensions
+## Caching Extensions
 ```ts
-// Cache for 1 hour
-fetch(url, { next: { revalidate: 3600 } })
+fetch(url, { next: { revalidate: 3600 } })  // cache for 1h
+fetch(url, { next: { tags: ['posts'] } })   // tag-based invalidation
+fetch(url, { cache: 'no-store' })           // always fresh
+fetch(url, { cache: 'force-cache' })        // never refetch
 
-// Tag-based invalidation
-fetch(url, { next: { tags: ['posts'] } })
-// Then anywhere on the server:
 import { revalidateTag } from 'next/cache'
 revalidateTag('posts')
-
-// Force fresh on every request
-fetch(url, { cache: 'no-store' })
-// Force cache forever
-fetch(url, { cache: 'force-cache' })
 ```
-
-Identical `GET` fetches are auto-memoized within a single render pass — no need to prop-drill.
+Identical `GET` fetches are auto-memoized within one render pass.
 
 ## Parallel vs Sequential
 ```tsx
-// Sequential — slow (waterfall)
+// Sequential (waterfall)
 const artist = await getArtist(id)
 const albums = await getAlbums(id)
 
-// Parallel — kick off both, await together
+// Parallel
 const [artist, albums] = await Promise.all([getArtist(id), getAlbums(id)])
 ```
 
 ## Async `params` / `searchParams`
 ```tsx
 export default async function Page({
-  params, searchParams,
+  params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ q?: string }>
@@ -57,18 +51,16 @@ export default async function Page({
 
 ## Static Generation
 ```ts
-// app/blog/[slug]/page.tsx
 export async function generateStaticParams() {
   const posts = await db.post.findMany({ select: { slug: true } })
   return posts.map(p => ({ slug: p.slug }))
 }
-// Block unknown slugs at runtime → 404
-export const dynamicParams = false
+export const dynamicParams = false  // unknown slugs → 404
 ```
 
-⚠️ With [[Cache Components]] enabled, `generateStaticParams` must return at least one entry — empty arrays cause a build error.
+⚠️ With [[Cache Components]], `generateStaticParams` must return ≥1 entry — empty arrays cause a build error.
 
-💡 Wrap shared loaders in `React.cache()` to dedupe across `generateMetadata` and `Page` in the same request.
+💡 Wrap shared loaders in `React.cache()` to dedupe across `generateMetadata` and `Page`.
 
 ## Tags
 [[Nextjs]] [[App Router]] [[RSC]] [[Cache Components]]

@@ -1,85 +1,54 @@
 # 14 — Kustomize
 
-🔑 Template-free config customization via overlays — start with a base of plain YAML, then patch it per environment. Built into `kubectl -k`.
+🔑 Template-free customization via overlays — a base of plain YAML, patched per environment. Built into `kubectl -k`.
 
 Source: https://kustomize.io/
 
 ## Layout
-```
-manifests/
-├── base/
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   └── kustomization.yaml
-└── overlays/
-    ├── dev/
-    │   ├── kustomization.yaml
-    │   └── replica-patch.yaml
-    └── prod/
-        ├── kustomization.yaml
-        └── resources-patch.yaml
-```
+`base/` holds the canonical manifests + a `kustomization.yaml`; `overlays/{dev,prod}/` each have their own `kustomization.yaml` referencing the base plus environment-specific patches.
 
-## Base `kustomization.yaml`
-```yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - deployment.yaml
-  - service.yaml
-commonLabels: { app: api }
-```
-
-## Overlay
+## Overlay Example
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: prod
-resources:
-  - ../../base
+resources: [../../base]
 images:
-  - name: api
-    newTag: v1.4.2
+  - { name: api, newTag: v1.4.2 }
 replicas:
-  - name: api
-    count: 5
+  - { name: api, count: 5 }
 patches:
   - path: resources-patch.yaml
     target: { kind: Deployment, name: api }
 ```
 
-## Patch Types
-- **Strategic merge** — YAML fragment merged by Kubernetes-aware rules.
-- **JSON 6902** — RFC-6902 ops (`add`, `replace`, `remove`) with JSON Pointer paths.
+## Patches
+- **Strategic merge** — YAML fragment, Kubernetes-aware merge rules.
+- **JSON 6902** — RFC-6902 ops (`add`/`replace`/`remove`) with JSON Pointer paths.
 
 ## Generators
-- `configMapGenerator` / `secretGenerator` — build ConfigMap/Secret from files or literals; auto-suffixed hash so changes trigger rolling updates.
-
-```yaml
-configMapGenerator:
-  - name: app-cfg
-    files: [config/app.yaml]
-```
+`configMapGenerator` / `secretGenerator` build ConfigMap/Secret from files or literals; output gets a content-hash suffix so changes trigger rolling updates (refs are rewritten).
 
 ## Apply
 ```bash
 kubectl apply -k overlays/prod
 kubectl kustomize overlays/prod   # render only
+kubectl diff -k overlays/prod     # preview
 ```
 
 ## Helm vs Kustomize
 | | Helm | Kustomize |
 |---|---|---|
-| Style | Templates | Patches/overlays |
-| Distribution | Charts (versioned, OCI) | Just git |
-| Logic in templates | Yes (Go) | No (declarative only) |
-| State | Release secrets | None — pure YAML |
-| Hybrid | `helm template ... | kustomize` is common |
+| Style | Go templates | Patches / overlays |
+| Distribution | OCI charts | Just git |
+| Logic | Yes | No (declarative) |
+| State | Release secrets | None |
+
+Hybrid (`helm template … | kustomize build`) is common.
 
 ## ⚠️ Gotchas
-- No conditionals / loops by design — if you need them, reach for [[Helm]].
-- Generator hashes change Resource names; reference via `name` (Kustomize rewrites refs).
-- 💡 `kubectl diff -k overlays/prod` before apply.
+- No conditionals / loops by design — reach for [[Helm]] if needed.
+- 💡 Generator hash names break hard-coded refs; always reference by base `name`.
 
 ## Tags
 [[Kubernetes]] [[Kustomize]] [[Helm]]

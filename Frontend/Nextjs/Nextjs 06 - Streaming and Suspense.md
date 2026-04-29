@@ -1,6 +1,6 @@
 # 06 — Streaming and Suspense
 
-🔑 Streaming sends HTML to the browser in chunks as each Suspense boundary resolves — the first paint shows the static shell instantly, slow data fills in.
+🔑 Streaming sends HTML in chunks as each Suspense boundary resolves — the static shell paints instantly while slow data fills in.
 
 Source: https://nextjs.org/docs/app/getting-started/fetching-data#streaming
 
@@ -13,22 +13,20 @@ Source: https://nextjs.org/docs/app/getting-started/fetching-data#streaming
 ## `loading.tsx`
 ```tsx
 // app/blog/loading.tsx
-export default function Loading() {
-  return <BlogSkeleton />
-}
+export default function Loading() { return <BlogSkeleton /> }
 ```
-Renders immediately on navigation; swapped for `page.tsx` once the page resolves. Lives at any segment level.
+Renders immediately on navigation; swapped for `page.tsx` once it resolves.
 
-## `<Suspense>` for Granular Holes
+## Granular `<Suspense>`
 ```tsx
 import { Suspense } from 'react'
 
 export default function Page() {
   return (
     <main>
-      <Header />                                    {/* instant */}
+      <Header />
       <Suspense fallback={<PostsSkeleton />}>
-        <Posts />                                   {/* awaits DB */}
+        <Posts />
       </Suspense>
     </main>
   )
@@ -40,19 +38,13 @@ async function Posts() {
 }
 ```
 
-## When to Suspend
-- Slow / uncertain data (DB, third-party API).
-- Anything below "above-the-fold" — let the shell paint first.
-- Per-card loading states in a grid (each card its own boundary).
-
-## Streaming Data to Client Components
-Don't `await` in the parent — pass the promise; resolve with `use()` on the client:
+## Streaming to Client Components
+Pass an unawaited promise; resolve with `use()`:
 ```tsx
 // Server
-export default function Page() {
-  const posts = getPosts()  // not awaited
-  return <Suspense fallback={<Skel />}><Posts posts={posts} /></Suspense>
-}
+const posts = getPosts()  // not awaited
+return <Suspense fallback={<Skel />}><Posts posts={posts} /></Suspense>
+
 // Client
 'use client'
 import { use } from 'react'
@@ -61,9 +53,9 @@ export default function Posts({ posts }: { posts: Promise<Post[]> }) {
 }
 ```
 
-⚠️ `loading.tsx` does **not** cover a layout that itself accesses `cookies()` / `headers()` — that blocks navigation. Wrap the dynamic access in its own `<Suspense>`.
+⚠️ `loading.tsx` doesn't cover a layout that itself reads `cookies()`/`headers()` — wrap that access in its own `<Suspense>`.
 
-💡 [[Cache Components]] composes naturally: cache the shell, suspend the dynamic chunks.
+💡 Composes with [[Cache Components]]: cache the shell, suspend dynamic chunks.
 
 ## Tags
 [[Nextjs]] [[Streaming]] [[RSC]] [[Suspense]]

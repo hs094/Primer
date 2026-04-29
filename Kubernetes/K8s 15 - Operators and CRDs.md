@@ -1,6 +1,6 @@
 # 15 — Operators and CRDs
 
-🔑 An Operator is a custom controller that turns a CRD ("MyDB") into running infrastructure by reconciling desired state into reality — codifying SRE knowledge.
+🔑 An Operator is a custom controller that turns a CRD ("MyDB") into running infrastructure via a reconcile loop — SRE knowledge as code.
 
 Source: https://kubernetes.io/docs/concepts/extend-kubernetes/operator/
 
@@ -14,39 +14,22 @@ metadata: { name: sampledbs.databases.example.com }
 spec:
   group: databases.example.com
   scope: Namespaced
-  names: { kind: SampleDB, plural: sampledbs, singular: sampledb }
+  names: { kind: SampleDB, plural: sampledbs }
   versions:
-    - name: v1
-      served: true
-      storage: true
-      schema:
-        openAPIV3Schema:
-          type: object
-          properties:
-            spec:
-              type: object
-              properties:
-                version: { type: string }
-                storage: { type: string }
+    - { name: v1, served: true, storage: true,
+        schema: { openAPIV3Schema: { type: object } } }
 ```
-
-## Custom Resource (CR)
-```yaml
-apiVersion: databases.example.com/v1
-kind: SampleDB
-metadata: { name: orders-db }
-spec: { version: "16", storage: 50Gi }
-```
+A user-facing CR is then `kind: SampleDB` with a `spec` like `{ version: "16", storage: 50Gi }`.
 
 ## Reconcile Loop
 ```
 forever:
-  observe   = read CR + actual cluster state
-  plan      = diff(desired, observed)
-  act       = create/update/delete child objects (StatefulSet, PVC, Service, ...)
-  status    = write back to CR.status
+  observe = read CR + actual cluster state
+  plan    = diff(desired, observed)
+  act     = create/update/delete children (STS, PVC, Service, ...)
+  status  = write back to CR.status
 ```
-Idempotent. Re-runs cheaply on every event or periodic resync.
+Idempotent; re-runs on every watch event or periodic resync.
 
 ## Frameworks
 | Framework | Lang |
@@ -58,15 +41,15 @@ Idempotent. Re-runs cheaply on every event or periodic resync.
 
 ## Real Operators
 - **Strimzi** — Kafka clusters, topics, users.
-- **CloudNativePG** — Postgres with backups, failover, replicas.
-- **Prometheus Operator** — `Prometheus`, `ServiceMonitor`, `PrometheusRule` CRDs.
-- **cert-manager** — `Certificate`, `Issuer`, ACME automation.
-- **Argo CD / Argo Rollouts**, **Flux** — GitOps controllers.
+- **CloudNativePG** — Postgres with HA, backups, failover.
+- **Prometheus Operator** — `ServiceMonitor`, `PrometheusRule`.
+- **cert-manager** — ACME `Certificate` automation.
+- **Argo CD** / **Flux** — GitOps controllers.
 
 ## ⚠️ Gotchas
 - A CRD without a controller is just a glorified ConfigMap — nothing reconciles it.
-- `status` should only be written by the controller; spec by users. Use the `/status` subresource.
-- 💡 OperatorHub.io catalogs hundreds of off-the-shelf operators — check before building one.
+- `status` is controller-owned; use the `/status` subresource so users can't write it.
+- 💡 Check OperatorHub.io before writing your own.
 
 ## Tags
 [[Kubernetes]] [[CRD]] [[Operator]] [[Reconcile]]
